@@ -1,76 +1,32 @@
 package com.example.template;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.KafkaTemplate;
 
-import javax.persistence.*;
-import java.io.Serializable;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.PostPersist;
 
 @Entity
+@Getter
+@Setter
 public class Delivery {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long deliveryId;
     private Long orderId;
     private String customerId;
     private String customerName;
     private String deliveryAddress;
     private String deliveryState;
-
-
-
-    public Long getDeliveryId() {
-        return deliveryId;
-    }
-
-    public void setDeliveryId(Long deliveryId) {
-        this.deliveryId = deliveryId;
-    }
-
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
-    }
-
-    public String getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
-
-    public String getDeliveryAddress() {
-        return deliveryAddress;
-    }
-
-    public void setDeliveryAddress(String deliveryAddress) {
-        this.deliveryAddress = deliveryAddress;
-    }
-
-    public String getDeliveryState() {
-        return deliveryState;
-    }
-
-    public void setDeliveryState(String deliveryState) {
-        this.deliveryState = deliveryState;
-    }
 
     @PostPersist
     private void publishDeliveryStart() {
@@ -79,7 +35,7 @@ public class Delivery {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
 
-        if( deliveryState.equals(DeliveryStarted.class.getSimpleName())){
+        if (deliveryState.equals(DeliveryStarted.class.getSimpleName())) {
             DeliveryStarted deliveryStarted = new DeliveryStarted();
             deliveryStarted.setOrderId(this.getOrderId());
             try {
@@ -90,7 +46,7 @@ public class Delivery {
             }
         }
 
-        if( json != null ){
+        if (json != null) {
             Environment env = Application.applicationContext.getEnvironment();
             String topicName = env.getProperty("eventTopic");
             ProducerRecord producerRecord = new ProducerRecord<>(topicName, json);
